@@ -1,0 +1,11 @@
+[package]
+name = "ftokenizer"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "staticlib"]
+
+[dependencies]
+flutter_rust_bridge = "=2.6.0"
+rust_tokenizers = "8.1.1"
