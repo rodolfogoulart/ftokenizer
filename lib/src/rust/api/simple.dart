@@ -6,6 +6,8 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
+// These functions are ignored because they are not marked as `pub`: `load_bert_vocab`
+
 /// Returns a Vec<i64>
 ///
 /// # Arguments
@@ -20,6 +22,19 @@ Int64List bertTokenizer256Default(
         {required String text, required String vocabPath}) =>
     RustLib.instance.api.crateApiSimpleBertTokenizer256Default(
         text: text, vocabPath: vocabPath);
+
+List<Int64List> bertTokenizerBatch(
+        {required List<String> textBatch,
+        required BigInt maxLen,
+        required bool lowercase,
+        required bool stripAccents,
+        required String vocabPath}) =>
+    RustLib.instance.api.crateApiSimpleBertTokenizerBatch(
+        textBatch: textBatch,
+        maxLen: maxLen,
+        lowercase: lowercase,
+        stripAccents: stripAccents,
+        vocabPath: vocabPath);
 
 Int64List bertTokenizer(
         {required String text,

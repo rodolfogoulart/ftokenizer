@@ -68,7 +68,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.6.0';
 
   @override
-  int get rustContentHash => 1563520798;
+  int get rustContentHash => -1255438299;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -88,6 +88,13 @@ abstract class RustLibApi extends BaseApi {
 
   Int64List crateApiSimpleBertTokenizer256Default(
       {required String text, required String vocabPath});
+
+  List<Int64List> crateApiSimpleBertTokenizerBatch(
+      {required List<String> textBatch,
+      required BigInt maxLen,
+      required bool lowercase,
+      required bool stripAccents,
+      required String vocabPath});
 
   Future<void> crateApiSimpleInitApp();
 }
@@ -160,12 +167,51 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  List<Int64List> crateApiSimpleBertTokenizerBatch(
+      {required List<String> textBatch,
+      required BigInt maxLen,
+      required bool lowercase,
+      required bool stripAccents,
+      required String vocabPath}) {
+    return handler.executeSync(SyncTask(
+      callFfi: () {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_list_String(textBatch, serializer);
+        sse_encode_usize(maxLen, serializer);
+        sse_encode_bool(lowercase, serializer);
+        sse_encode_bool(stripAccents, serializer);
+        sse_encode_String(vocabPath, serializer);
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 3)!;
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_list_list_prim_i_64_strict,
+        decodeErrorData: null,
+      ),
+      constMeta: kCrateApiSimpleBertTokenizerBatchConstMeta,
+      argValues: [textBatch, maxLen, lowercase, stripAccents, vocabPath],
+      apiImpl: this,
+    ));
+  }
+
+  TaskConstMeta get kCrateApiSimpleBertTokenizerBatchConstMeta =>
+      const TaskConstMeta(
+        debugName: "bert_tokenizer_batch",
+        argNames: [
+          "textBatch",
+          "maxLen",
+          "lowercase",
+          "stripAccents",
+          "vocabPath"
+        ],
+      );
+
+  @override
   Future<void> crateApiSimpleInitApp() {
     return handler.executeNormal(NormalTask(
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 3, port: port_);
+            funcId: 4, port: port_);
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_unit,
@@ -198,6 +244,20 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   PlatformInt64 dco_decode_i_64(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dcoDecodeI64(raw);
+  }
+
+  @protected
+  List<String> dco_decode_list_String(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_String).toList();
+  }
+
+  @protected
+  List<Int64List> dco_decode_list_list_prim_i_64_strict(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>)
+        .map(dco_decode_list_prim_i_64_strict)
+        .toList();
   }
 
   @protected
@@ -247,6 +307,31 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   PlatformInt64 sse_decode_i_64(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return deserializer.buffer.getPlatformInt64();
+  }
+
+  @protected
+  List<String> sse_decode_list_String(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <String>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_String(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<Int64List> sse_decode_list_list_prim_i_64_strict(
+      SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <Int64List>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_list_prim_i_64_strict(deserializer));
+    }
+    return ans_;
   }
 
   @protected
@@ -302,6 +387,25 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   void sse_encode_i_64(PlatformInt64 self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     serializer.buffer.putPlatformInt64(self);
+  }
+
+  @protected
+  void sse_encode_list_String(List<String> self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_String(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_list_prim_i_64_strict(
+      List<Int64List> self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_list_prim_i_64_strict(item, serializer);
+    }
   }
 
   @protected

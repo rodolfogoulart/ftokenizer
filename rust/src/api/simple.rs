@@ -24,9 +24,38 @@ pub fn bert_tokenizer256default(text: &str, vocab_path: &str) -> Vec<i64> {
     return token;
 }
 
-#[flutter_rust_bridge::frb(sync)] 
-pub fn bert_tokenizer(text: &str, max_len: usize, lowercase: bool, strip_accents: bool, vocab_path: &str ) -> Vec<i64>{
+// #[flutter_rust_bridge::frb(sync)] 
+// pub fn bert_tokenizer(text: &str, max_len: usize, lowercase: bool, strip_accents: bool, vocab_path: &str ) -> Vec<i64>{
 
+//     let path: PathBuf = PathBuf::from(vocab_path);
+//     if path.exists() {
+        
+//         let vocab: BertVocab = match BertVocab::from_file(&path.as_path()) {
+//             Ok(vocab) => vocab,
+//             Err(e) => panic!("Error reading vocab file: {}", e), 
+//         }; 
+            
+//         let test_sentence = text.to_string();
+        
+        
+//         let bert_tokenizer = BertTokenizer::from_existing_vocab(vocab, lowercase, strip_accents);
+//         let encoding = bert_tokenizer.encode(
+//             &test_sentence,
+//             None,
+//             max_len,
+//             &TruncationStrategy::LongestFirst,
+//             0
+//         );
+    
+//         // println!("{:?}", encoding);
+        
+//         return encoding.token_ids;
+//     }else{
+//         panic!("Vocab file not found");
+//     }
+// }
+
+fn load_bert_vocab(lowercase: bool, strip_accents: bool, vocab_path: &str) -> BertTokenizer{
     let path: PathBuf = PathBuf::from(vocab_path);
     if path.exists() {
         
@@ -34,23 +63,48 @@ pub fn bert_tokenizer(text: &str, max_len: usize, lowercase: bool, strip_accents
             Ok(vocab) => vocab,
             Err(e) => panic!("Error reading vocab file: {}", e), 
         }; 
-            
-        let test_sentence = text.to_string();
-        
-        
+                    
         let bert_tokenizer = BertTokenizer::from_existing_vocab(vocab, lowercase, strip_accents);
-        let encoding = bert_tokenizer.encode(
-            &test_sentence,
-            None,
-            max_len,
-            &TruncationStrategy::LongestFirst,
-            0
-        );
-    
-        // println!("{:?}", encoding);
-        
-        return encoding.token_ids;
+        return bert_tokenizer;
     }else{
         panic!("Vocab file not found");
     }
+}
+
+#[flutter_rust_bridge::frb(sync)] 
+pub fn bert_tokenizer_batch(text_batch: Vec<String>, max_len: usize, lowercase: bool, strip_accents: bool, vocab_path: &str ) -> Vec<Vec<i64>>{
+
+    let bert_tokenizer = load_bert_vocab(lowercase, strip_accents, vocab_path);
+    let mut batch:Vec<Vec<i64>>  = Vec::new();
+
+    for t in text_batch {
+        let test_sentence = t;
+        let encoding = bert_tokenizer.encode(
+        &test_sentence,
+        None,
+        max_len,
+        &TruncationStrategy::LongestFirst,
+        0,
+        );
+        batch.push(encoding.token_ids);
+    }
+
+    return batch;
+}
+
+
+#[flutter_rust_bridge::frb(sync)] 
+pub fn bert_tokenizer(text: &str, max_len: usize, lowercase: bool, strip_accents: bool, vocab_path: &str ) -> Vec<i64>{
+
+    let bert_tokenizer = load_bert_vocab(lowercase, strip_accents, vocab_path);
+    let test_sentence = text.to_string();
+    let encoding = bert_tokenizer.encode(
+        &test_sentence,
+        None,
+        max_len,
+        &TruncationStrategy::LongestFirst,
+        0
+    );    
+    // println!("{:?}", encoding);    
+    return encoding.token_ids;    
 }

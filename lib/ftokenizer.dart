@@ -30,5 +30,20 @@ class FTokenizer {
         vocabPath: vocabPath ?? pathVocab,
       ).map((i) => i.toInt()).toList();
 
+  static List<List<int>> getBertTokensBatch({
+    required List<String> textBatch,
+    required int maxLen,
+    required bool lowercase,
+    required bool stripAccents,
+    required String? vocabPath,
+  }) =>
+      bertTokenizerBatch(
+        textBatch: textBatch,
+        maxLen: BigInt.from(maxLen),
+        lowercase: lowercase,
+        stripAccents: stripAccents,
+        vocabPath: vocabPath ?? pathVocab,
+      ).map((i) => i.map((e) => e.toInt()).toList()).toList();
+
   static void dispose() => RustLib.dispose();
 }

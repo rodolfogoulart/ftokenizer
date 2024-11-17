@@ -33,7 +33,13 @@ class _MyAppState extends State<MyApp> {
               controller: _controller,
               onSubmitted: (value) {
                 setState(() {
-                  tokens = FTokenizer.getBertTokens256Default(value).toString();
+                  // tokens = FTokenizer.getBertTokens256Default(value).toString();
+                  List<String> toBatch = List.generate(1000, (i) => 'tokens $i');
+
+                  var batch = FTokenizer.getBertTokensBatch(
+                      textBatch: toBatch, maxLen: 256, lowercase: false, stripAccents: false, vocabPath: 'vocab/vocab.txt');
+
+                  tokens = batch.toString();
                 });
               },
             ),
