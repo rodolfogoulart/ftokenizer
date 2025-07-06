@@ -3,7 +3,7 @@
 
 // ignore_for_file: unused_import, unused_element, unnecessary_import, duplicate_ignore, invalid_use_of_internal_member, annotate_overrides, non_constant_identifier_names, curly_braces_in_flow_control_structures, prefer_const_literals_to_create_immutables, unused_field
 
-import 'api/simple.dart';
+import 'api/bert.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'frb_generated.dart';
@@ -68,7 +68,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.6.0';
 
   @override
-  int get rustContentHash => -1255438299;
+  int get rustContentHash => -1565348133;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -79,24 +79,23 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
 }
 
 abstract class RustLibApi extends BaseApi {
-  Int64List crateApiSimpleBertTokenizer(
+  Future<void> crateApiSimpleInitApp();
+
+  Int64List crateApiBertTokenizer(
       {required String text,
+      String? text2,
       required BigInt maxLen,
       required bool lowercase,
       required bool stripAccents,
-      required String vocabPath});
+      required String vocabPath,
+      required Truncation truncationStrategy});
 
-  Int64List crateApiSimpleBertTokenizer256Default(
-      {required String text, required String vocabPath});
-
-  List<Int64List> crateApiSimpleBertTokenizerBatch(
+  List<Int64List> crateApiBertTokenizerBatch(
       {required List<String> textBatch,
       required BigInt maxLen,
       required bool lowercase,
       required bool stripAccents,
       required String vocabPath});
-
-  Future<void> crateApiSimpleInitApp();
 }
 
 class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
@@ -108,66 +107,82 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   });
 
   @override
-  Int64List crateApiSimpleBertTokenizer(
-      {required String text,
-      required BigInt maxLen,
-      required bool lowercase,
-      required bool stripAccents,
-      required String vocabPath}) {
-    return handler.executeSync(SyncTask(
-      callFfi: () {
+  Future<void> crateApiSimpleInitApp() {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_String(text, serializer);
-        sse_encode_usize(maxLen, serializer);
-        sse_encode_bool(lowercase, serializer);
-        sse_encode_bool(stripAccents, serializer);
-        sse_encode_String(vocabPath, serializer);
-        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 1)!;
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 1, port: port_);
       },
       codec: SseCodec(
-        decodeSuccessData: sse_decode_list_prim_i_64_strict,
+        decodeSuccessData: sse_decode_unit,
         decodeErrorData: null,
       ),
-      constMeta: kCrateApiSimpleBertTokenizerConstMeta,
-      argValues: [text, maxLen, lowercase, stripAccents, vocabPath],
+      constMeta: kCrateApiSimpleInitAppConstMeta,
+      argValues: [],
       apiImpl: this,
     ));
   }
 
-  TaskConstMeta get kCrateApiSimpleBertTokenizerConstMeta =>
-      const TaskConstMeta(
-        debugName: "bert_tokenizer",
-        argNames: ["text", "maxLen", "lowercase", "stripAccents", "vocabPath"],
+  TaskConstMeta get kCrateApiSimpleInitAppConstMeta => const TaskConstMeta(
+        debugName: "init_app",
+        argNames: [],
       );
 
   @override
-  Int64List crateApiSimpleBertTokenizer256Default(
-      {required String text, required String vocabPath}) {
+  Int64List crateApiBertTokenizer(
+      {required String text,
+      String? text2,
+      required BigInt maxLen,
+      required bool lowercase,
+      required bool stripAccents,
+      required String vocabPath,
+      required Truncation truncationStrategy}) {
     return handler.executeSync(SyncTask(
       callFfi: () {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_String(text, serializer);
+        sse_encode_opt_String(text2, serializer);
+        sse_encode_usize(maxLen, serializer);
+        sse_encode_bool(lowercase, serializer);
+        sse_encode_bool(stripAccents, serializer);
         sse_encode_String(vocabPath, serializer);
+        sse_encode_truncation(truncationStrategy, serializer);
         return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 2)!;
       },
       codec: SseCodec(
         decodeSuccessData: sse_decode_list_prim_i_64_strict,
         decodeErrorData: null,
       ),
-      constMeta: kCrateApiSimpleBertTokenizer256DefaultConstMeta,
-      argValues: [text, vocabPath],
+      constMeta: kCrateApiBertTokenizerConstMeta,
+      argValues: [
+        text,
+        text2,
+        maxLen,
+        lowercase,
+        stripAccents,
+        vocabPath,
+        truncationStrategy
+      ],
       apiImpl: this,
     ));
   }
 
-  TaskConstMeta get kCrateApiSimpleBertTokenizer256DefaultConstMeta =>
-      const TaskConstMeta(
-        debugName: "bert_tokenizer256default",
-        argNames: ["text", "vocabPath"],
+  TaskConstMeta get kCrateApiBertTokenizerConstMeta => const TaskConstMeta(
+        debugName: "tokenizer",
+        argNames: [
+          "text",
+          "text2",
+          "maxLen",
+          "lowercase",
+          "stripAccents",
+          "vocabPath",
+          "truncationStrategy"
+        ],
       );
 
   @override
-  List<Int64List> crateApiSimpleBertTokenizerBatch(
+  List<Int64List> crateApiBertTokenizerBatch(
       {required List<String> textBatch,
       required BigInt maxLen,
       required bool lowercase,
@@ -187,15 +202,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         decodeSuccessData: sse_decode_list_list_prim_i_64_strict,
         decodeErrorData: null,
       ),
-      constMeta: kCrateApiSimpleBertTokenizerBatchConstMeta,
+      constMeta: kCrateApiBertTokenizerBatchConstMeta,
       argValues: [textBatch, maxLen, lowercase, stripAccents, vocabPath],
       apiImpl: this,
     ));
   }
 
-  TaskConstMeta get kCrateApiSimpleBertTokenizerBatchConstMeta =>
-      const TaskConstMeta(
-        debugName: "bert_tokenizer_batch",
+  TaskConstMeta get kCrateApiBertTokenizerBatchConstMeta => const TaskConstMeta(
+        debugName: "tokenizer_batch",
         argNames: [
           "textBatch",
           "maxLen",
@@ -203,29 +217,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           "stripAccents",
           "vocabPath"
         ],
-      );
-
-  @override
-  Future<void> crateApiSimpleInitApp() {
-    return handler.executeNormal(NormalTask(
-      callFfi: (port_) {
-        final serializer = SseSerializer(generalizedFrbRustBinding);
-        pdeCallFfi(generalizedFrbRustBinding, serializer,
-            funcId: 4, port: port_);
-      },
-      codec: SseCodec(
-        decodeSuccessData: sse_decode_unit,
-        decodeErrorData: null,
-      ),
-      constMeta: kCrateApiSimpleInitAppConstMeta,
-      argValues: [],
-      apiImpl: this,
-    ));
-  }
-
-  TaskConstMeta get kCrateApiSimpleInitAppConstMeta => const TaskConstMeta(
-        debugName: "init_app",
-        argNames: [],
       );
 
   @protected
@@ -238,6 +229,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   bool dco_decode_bool(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as bool;
+  }
+
+  @protected
+  int dco_decode_i_32(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as int;
   }
 
   @protected
@@ -273,6 +270,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  String? dco_decode_opt_String(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_String(raw);
+  }
+
+  @protected
+  Truncation dco_decode_truncation(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return Truncation.values[raw as int];
+  }
+
+  @protected
   int dco_decode_u_8(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as int;
@@ -301,6 +310,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   bool sse_decode_bool(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return deserializer.buffer.getUint8() != 0;
+  }
+
+  @protected
+  int sse_decode_i_32(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getInt32();
   }
 
   @protected
@@ -349,6 +364,24 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  String? sse_decode_opt_String(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_String(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  Truncation sse_decode_truncation(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var inner = sse_decode_i_32(deserializer);
+    return Truncation.values[inner];
+  }
+
+  @protected
   int sse_decode_u_8(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return deserializer.buffer.getUint8();
@@ -366,12 +399,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  int sse_decode_i_32(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return deserializer.buffer.getInt32();
-  }
-
-  @protected
   void sse_encode_String(String self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_list_prim_u_8_strict(utf8.encoder.convert(self), serializer);
@@ -381,6 +408,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   void sse_encode_bool(bool self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     serializer.buffer.putUint8(self ? 1 : 0);
+  }
+
+  @protected
+  void sse_encode_i_32(int self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putInt32(self);
   }
 
   @protected
@@ -425,6 +458,22 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_opt_String(String? self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_String(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_truncation(Truncation self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.index, serializer);
+  }
+
+  @protected
   void sse_encode_u_8(int self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     serializer.buffer.putUint8(self);
@@ -439,11 +488,5 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   void sse_encode_usize(BigInt self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     serializer.buffer.putBigUint64(self);
-  }
-
-  @protected
-  void sse_encode_i_32(int self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    serializer.buffer.putInt32(self);
   }
 }
